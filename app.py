@@ -1,12 +1,22 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Reduce TensorFlow logging
+os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'  # Limit memory usage
+
+# Add these imports at the top
 from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
-import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import numpy as np
 from tensorflow.keras.models import load_model
 from PIL import Image
 import cv2
+
+# Configure TensorFlow to use less memory
+import tensorflow as tf
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 # ============================================
 # FLASK APP CONFIGURATION
@@ -96,7 +106,7 @@ except Exception as e:
     print(f"⚠ Warning: Could not load model - {e}")
     print("The app will run, but predictions won't work until model is available.")
     model = None
-    
+
 # ============================================
 # HELPER FUNCTIONS
 # ============================================
@@ -127,10 +137,15 @@ def detect_emotion(image_path):
         confidence = predictions[0][emotion_idx]
         emotion = EMOTIONS[emotion_idx]
         
+        # Clean up
+        del img, img_array, predictions
+        
         return emotion, float(confidence)
     
     except Exception as e:
         print(f"Error detecting emotion: {e}")
+        import traceback
+        traceback.print_exc()  # Print full error for debugging
         return 'neutral', 0.0
 
 def save_to_database(name, email, student_id, image_filename, emotion, emotion_response):
