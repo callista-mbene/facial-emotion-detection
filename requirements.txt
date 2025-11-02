@@ -6,3 +6,4 @@ opencv-python-headless==4.8.0.76
 scipy
 gunicorn==21.2.0
 werkzeug==3.0.1
+gdown==4.7.1

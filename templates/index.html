@@ -1,281 +1,315 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Facial Emotion Detection</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 500px;
-            width: 100%;
-            animation: fadeIn 0.5s ease-in;
-        }
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 100%;
+        animation: fadeIn 0.5s ease-in;
+      }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
         }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
+      h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+      }
 
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
+      .subtitle {
+        text-align: center;
+        color: #888;
+        margin-bottom: 30px;
+        font-size: 1.1em;
+      }
 
-        .form-group {
-            margin-bottom: 25px;
-        }
+      .form-group {
+        margin-bottom: 25px;
+      }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 600;
-            font-size: 0.95em;
-        }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 600;
+        font-size: 0.95em;
+      }
 
-        input[type="text"],
-        input[type="email"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
+      input[type="text"],
+      input[type="email"] {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: all 0.3s;
+        font-family: inherit;
+      }
 
-        input[type="text"]:focus,
-        input[type="email"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
+      input[type="text"]:focus,
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
 
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            width: 100%;
-        }
+      .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+        width: 100%;
+      }
 
-        .file-input-label {
-            display: block;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-align: center;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
+      .file-input-label {
+        display: block;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-align: center;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+      }
 
-        .file-input-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+      .file-input-label:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
 
-        input[type="file"] {
-            position: absolute;
-            left: -9999px;
-        }
+      input[type="file"] {
+        position: absolute;
+        left: -9999px;
+      }
 
-        .file-name {
-            margin-top: 10px;
-            color: #667eea;
-            font-size: 0.9em;
-            text-align: center;
-            font-weight: 600;
-        }
+      .file-name {
+        margin-top: 10px;
+        color: #667eea;
+        font-size: 0.9em;
+        text-align: center;
+        font-weight: 600;
+      }
 
-        .image-preview {
-            margin-top: 15px;
-            text-align: center;
-            display: none;
-        }
+      .image-preview {
+        margin-top: 15px;
+        text-align: center;
+        display: none;
+      }
 
-        .image-preview img {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+      .image-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
 
-        .submit-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.2em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
+      .submit-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.2em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 10px;
+      }
 
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
+      .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+      }
 
-        .submit-btn:active {
-            transform: translateY(-1px);
-        }
+      .submit-btn:active {
+        transform: translateY(-1px);
+      }
 
-        .required {
-            color: #e74c3c;
-        }
+      .required {
+        color: #e74c3c;
+      }
 
-        .info-text {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            color: #666;
-            font-size: 0.9em;
-            line-height: 1.6;
-            border-left: 4px solid #667eea;
-        }
+      .info-text {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        color: #666;
+        font-size: 0.9em;
+        line-height: 1.6;
+        border-left: 4px solid #667eea;
+      }
 
-        .emoji {
-            font-size: 3em;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+      .emoji {
+        font-size: 3em;
+        text-align: center;
+        margin-bottom: 20px;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="emoji">😊😢😠😲</div>
-        <h1>Emotion Detector</h1>
-        <p class="subtitle">Upload your photo and discover your emotion!</p>
+      <div class="emoji">😊😢😠😲</div>
+      <h1>Emotion Detector</h1>
+      <p class="subtitle">Upload your photo and discover your emotion!</p>
 
-        <div class="info-text">
-            📸 Take or upload a clear photo of your face. Our AI will detect your emotion and give you personalized feedback!
+      <div class="info-text">
+        📸 Take or upload a clear photo of your face. Our AI will detect your
+        emotion and give you personalized feedback!
+      </div>
+
+      <form
+        action="/submit"
+        method="POST"
+        enctype="multipart/form-data"
+        id="emotionForm"
+      >
+        <!-- Name -->
+        <div class="form-group">
+          <label for="name">Full Name <span class="required">*</span></label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Enter your full name"
+            required
+          />
         </div>
 
-        <form action="/submit" method="POST" enctype="multipart/form-data" id="emotionForm">
-            <!-- Name -->
-            <div class="form-group">
-                <label for="name">Full Name <span class="required">*</span></label>
-                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
-            </div>
+        <!-- Email -->
+        <div class="form-group">
+          <label for="email"
+            >Email Address <span class="required">*</span></label
+          >
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="your.email@example.com"
+            required
+          />
+        </div>
 
-            <!-- Email -->
-            <div class="form-group">
-                <label for="email">Email Address <span class="required">*</span></label>
-                <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
-            </div>
+        <!-- Student ID (Optional) -->
+        <div class="form-group">
+          <label for="student_id">Student ID (Optional)</label>
+          <input
+            type="text"
+            id="student_id"
+            name="student_id"
+            placeholder="e.g., 2024001"
+          />
+        </div>
 
-            <!-- Student ID (Optional) -->
-            <div class="form-group">
-                <label for="student_id">Student ID (Optional)</label>
-                <input type="text" id="student_id" name="student_id" placeholder="e.g., 2024001">
-            </div>
+        <!-- Image Upload -->
+        <div class="form-group">
+          <label>Upload Your Photo <span class="required">*</span></label>
+          <div class="file-input-wrapper">
+            <label for="image" class="file-input-label" id="fileLabel">
+              📷 Choose Photo
+            </label>
+            <input
+              type="file"
+              id="image"
+              name="image"
+              accept="image/png, image/jpeg, image/jpg"
+              required
+            />
+          </div>
+          <div class="file-name" id="fileName"></div>
+          <div class="image-preview" id="imagePreview">
+            <img id="previewImg" src="" alt="Preview" />
+          </div>
+        </div>
 
-            <!-- Image Upload -->
-            <div class="form-group">
-                <label>Upload Your Photo <span class="required">*</span></label>
-                <div class="file-input-wrapper">
-                    <label for="image" class="file-input-label" id="fileLabel">
-                        📷 Choose Photo
-                    </label>
-                    <input type="file" id="image" name="image" accept="image/png, image/jpeg, image/jpg" required>
-                </div>
-                <div class="file-name" id="fileName"></div>
-                <div class="image-preview" id="imagePreview">
-                    <img id="previewImg" src="" alt="Preview">
-                </div>
-            </div>
-
-            <!-- Submit Button -->
-            <button type="submit" class="submit-btn">🔍 Detect My Emotion</button>
-        </form>
+        <!-- Submit Button -->
+        <button type="submit" class="submit-btn">🔍 Detect My Emotion</button>
+      </form>
     </div>
 
     <script>
-        // Image preview functionality
-        const fileInput = document.getElementById('image');
-        const fileLabel = document.getElementById('fileLabel');
-        const fileName = document.getElementById('fileName');
-        const imagePreview = document.getElementById('imagePreview');
-        const previewImg = document.getElementById('previewImg');
+      // Image preview functionality
+      const fileInput = document.getElementById("image");
+      const fileLabel = document.getElementById("fileLabel");
+      const fileName = document.getElementById("fileName");
+      const imagePreview = document.getElementById("imagePreview");
+      const previewImg = document.getElementById("previewImg");
 
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                // Update label text
-                fileLabel.textContent = '✓ Photo Selected';
-                fileLabel.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
-                
-                // Show file name
-                fileName.textContent = file.name;
-                
-                // Show image preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+      fileInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
 
-        // Form validation
-        document.getElementById('emotionForm').addEventListener('submit', function(e) {
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const image = document.getElementById('image').files[0];
+        if (file) {
+          // Update label text
+          fileLabel.textContent = "✓ Photo Selected";
+          fileLabel.style.background =
+            "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)";
 
-            if (!name || !email || !image) {
-                e.preventDefault();
-                alert('Please fill in all required fields and upload a photo!');
-                return false;
-            }
+          // Show file name
+          fileName.textContent = file.name;
 
-            // Show loading state
-            const submitBtn = document.querySelector('.submit-btn');
-            submitBtn.textContent = '🔄 Processing...';
-            submitBtn.disabled = true;
+          // Show image preview
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewImg.src = e.target.result;
+            imagePreview.style.display = "block";
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Form validation
+      document
+        .getElementById("emotionForm")
+        .addEventListener("submit", function (e) {
+          const name = document.getElementById("name").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const image = document.getElementById("image").files[0];
+
+          if (!name || !email || !image) {
+            e.preventDefault();
+            alert("Please fill in all required fields and upload a photo!");
+            return false;
+          }
+
+          // Show loading state
+          const submitBtn = document.querySelector(".submit-btn");
+          submitBtn.textContent = "🔄 Processing...";
+          submitBtn.disabled = true;
         });
     </script>
-</body>
+  </body>
 </html>

@@ -64,15 +64,39 @@ init_db()
 # ============================================
 # LOAD TRAINED MODEL
 # ============================================
+MODEL_PATH = 'face_emotionModel.h5'
+GDRIVE_FILE_ID = '14c8yE75DnnVp8IKQf16FHIl_jAtstR8K'
+
+def download_model():
+    """Download model from Google Drive if not exists"""
+    if not os.path.exists(MODEL_PATH):
+        print("Model not found locally. Downloading from Google Drive...")
+        try:
+            import gdown
+            url = f'https://drive.google.com/uc?id={GDRIVE_FILE_ID}'
+            gdown.download(url, MODEL_PATH, quiet=False)
+            print("✓ Model downloaded successfully!")
+        except Exception as e:
+            print(f"⚠ Error downloading model: {e}")
+            return False
+    else:
+        print("✓ Model found locally.")
+    return True
+
 print("Loading emotion detection model...")
 try:
-    model = load_model('face_emotionModel.h5')
-    print("✓ Model loaded successfully!")
+    # Download model if needed
+    if download_model():
+        model = load_model(MODEL_PATH)
+        print("✓ Model loaded successfully!")
+    else:
+        model = None
+        print("⚠ Model download failed. App will run without predictions.")
 except Exception as e:
     print(f"⚠ Warning: Could not load model - {e}")
-    print("The app will run, but predictions won't work until model is trained.")
+    print("The app will run, but predictions won't work until model is available.")
     model = None
-
+    
 # ============================================
 # HELPER FUNCTIONS
 # ============================================
