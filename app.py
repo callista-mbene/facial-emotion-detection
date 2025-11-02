@@ -63,9 +63,10 @@ def init_db():
 init_db()
 
 # ============================================
-# LOAD MODEL
+# LOAD / CONVERT MODEL TO TFLITE
 # ============================================
 MODEL_PATH = 'face_emotionModel.h5'
+TFLITE_MODEL_PATH = 'face_emotionModel.tflite'
 GDRIVE_FILE_ID = '14c8yE75DnnVp8IKQf16FHIl_jAtstR8K'
 
 def download_model():
@@ -80,11 +81,26 @@ def download_model():
             return False
     return True
 
+def ensure_tflite_model():
+    """Convert .h5 to .tflite if not exists."""
+    if not os.path.exists(TFLITE_MODEL_PATH):
+        print("Converting Keras model to TensorFlow Lite...")
+        model = load_model(MODEL_PATH)
+        converter = tf.lite.TFLiteConverter.from_keras_model(model)
+        converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        tflite_model = converter.convert()
+        with open(TFLITE_MODEL_PATH, "wb") as f:
+            f.write(tflite_model)
+        print("✓ TFLite model created successfully!")
+
 if download_model():
-    model = load_model(MODEL_PATH)
-    print("✓ Model loaded successfully")
+    ensure_tflite_model()
+    # Load lightweight TFLite model
+    interpreter = tf.lite.Interpreter(model_path=TFLITE_MODEL_PATH)
+    interpreter.allocate_tensors()
+    print("✓ TFLite model loaded successfully!")
 else:
-    model = None
+    interpreter = None
     print("⚠ Model unavailable")
 
 # ============================================
@@ -95,39 +111,41 @@ def allowed_file(filename):
 
 
 def detect_emotion(image_path):
-    """Detect emotion with real-time face detection (Step 4 integrated)."""
-    if model is None:
+    """Detect emotion using the optimized TFLite model."""
+    if interpreter is None:
         return 'neutral', 0.0
 
     try:
-        # Load image
         img = cv2.imread(image_path)
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-        # Load OpenCV Haar Cascade for face detection
+        # Haar Cascade for face detection
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
         if len(faces) == 0:
-            print("No face detected, using full image")
             face_img = cv2.resize(gray, (48, 48))
         else:
-            # Take the largest face detected
             (x, y, w, h) = sorted(faces, key=lambda f: f[2]*f[3], reverse=True)[0]
             face_img = gray[y:y+h, x:x+w]
             face_img = cv2.resize(face_img, (48, 48))
 
-        # Normalize and reshape
         img_array = face_img / 255.0
-        img_array = img_array.reshape(1, 48, 48, 1)
+        img_array = img_array.astype(np.float32).reshape(1, 48, 48, 1)
 
-        # Predict
-        predictions = model.predict(img_array, verbose=0)
-        emotion_idx = np.argmax(predictions[0])
-        confidence = predictions[0][emotion_idx]
+        # Run inference with TFLite
+        input_details = interpreter.get_input_details()
+        output_details = interpreter.get_output_details()
+        interpreter.set_tensor(input_details[0]['index'], img_array)
+        interpreter.invoke()
+        predictions = interpreter.get_tensor(output_details[0]['index'])[0]
+
+        emotion_idx = np.argmax(predictions)
+        confidence = predictions[emotion_idx]
         emotion = EMOTIONS[emotion_idx]
 
         return emotion, float(confidence)
+
     except Exception as e:
         print("Error detecting emotion:", e)
         return 'neutral', 0.0
@@ -143,7 +161,6 @@ def save_to_database(name, email, student_id, image_filename, emotion, emotion_r
     ''', (name, email, student_id, image_filename, emotion, emotion_response, timestamp))
     conn.commit()
     conn.close()
-
 
 # ============================================
 # ROUTES
@@ -179,13 +196,11 @@ def submit():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # Real-time face detection + emotion recognition
         emotion, confidence = detect_emotion(filepath)
         emotion_response = EMOTION_RESPONSES[emotion]
-
         save_to_database(name, email, student_id, filename, emotion, emotion_response)
 
-        # (CSS unchanged)
+        # CSS left untouched
         result_html = f'''
         <!DOCTYPE html>
         <html>
@@ -294,7 +309,6 @@ def submit():
 
     except Exception as e:
         return f"Error processing request: {e}", 500
-
 
 # ============================================
 # RUN
